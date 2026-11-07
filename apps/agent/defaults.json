@@ -1,0 +1,5 @@
+{
+  "//": "Prefilled on first launch. These are the project's public client values (the same ones the website ships); RSC_SUPABASE_URL / RSC_SUPABASE_ANON_KEY at build time override them.",
+  "supabaseUrl": "https://dxfbvufynvdkurztaleq.supabase.co",
+  "anonKey": "sb_publishable_wRTLskaRp4EKaBQmiREYLA_dhf-QVUc"
+}

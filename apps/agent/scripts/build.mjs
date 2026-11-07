@@ -1,13 +1,16 @@
 // Bundles the agent with esbuild. Optional build-time defaults (handy for CI):
 //   RSC_SUPABASE_URL, RSC_SUPABASE_ANON_KEY  → prefilled on first launch
 import { build } from 'esbuild';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const defaultsFile = join(root, 'defaults.json');
+const defaults = existsSync(defaultsFile) ? JSON.parse(readFileSync(defaultsFile, 'utf8')) : {};
 const define = {
-  __DEFAULT_SUPABASE_URL__: JSON.stringify(process.env.RSC_SUPABASE_URL ?? ''),
-  __DEFAULT_SUPABASE_KEY__: JSON.stringify(process.env.RSC_SUPABASE_ANON_KEY ?? ''),
+  __DEFAULT_SUPABASE_URL__: JSON.stringify(process.env.RSC_SUPABASE_URL || defaults.supabaseUrl || ''),
+  __DEFAULT_SUPABASE_KEY__: JSON.stringify(process.env.RSC_SUPABASE_ANON_KEY || defaults.anonKey || ''),
 };
 
 const node = {
