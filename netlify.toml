@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build:web"
+  publish = "apps/web/dist"
+
+[build.environment]
+  ELECTRON_SKIP_BINARY_DOWNLOAD = "1"
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

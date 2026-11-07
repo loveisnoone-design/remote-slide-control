@@ -1,0 +1,23 @@
+{
+  "name": "remote-slide-control",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Remote slide control for hybrid events: speaker web remote, operator console, show-laptop agent and Supabase realtime relay.",
+  "workspaces": [
+    "packages/protocol",
+    "apps/web",
+    "apps/agent"
+  ],
+  "scripts": {
+    "test": "npm run test -w @rsc/protocol && npm run test -w @rsc/agent",
+    "test:db": "bash supabase/tests/run-local.sh",
+    "typecheck": "npm run typecheck -w @rsc/protocol && npm run typecheck -w @rsc/web && npm run typecheck -w @rsc/agent",
+    "build:web": "npm run build -w @rsc/web",
+    "build:agent": "npm run build -w @rsc/agent",
+    "dev:web": "npm run dev -w @rsc/web",
+    "dev:agent": "npm run dev -w @rsc/agent"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

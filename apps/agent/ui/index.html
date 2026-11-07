@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slide Relay Agent</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <div class="title">Slide Relay Agent</div>
+    <div class="sub" id="session-line">Not paired</div>
+  </div>
+  <span class="pill" id="link-pill"><span class="dot"></span><span id="link-text">Idle</span></span>
+</header>
+
+<main>
+  <!-- 1. Supabase project -->
+  <section class="card" id="configure" hidden>
+    <h2>Connect to your Supabase project</h2>
+    <p class="muted">Paste the values from Supabase → Project Settings → API. You only do this once per laptop.</p>
+    <form id="configure-form" novalidate>
+      <label for="sb-url">Project URL</label>
+      <input id="sb-url" type="url" placeholder="https://your-project.supabase.co" autocomplete="off">
+      <label for="sb-key">Anon / publishable key</label>
+      <input id="sb-key" type="password" placeholder="eyJ…" autocomplete="off">
+      <div class="error" id="configure-error" role="alert"></div>
+      <button class="primary" type="submit">Save</button>
+    </form>
+  </section>
+
+  <!-- 2. Pairing -->
+  <section class="card" id="pairing" hidden>
+    <h2>Pair with a session</h2>
+    <p class="muted">In the operator console, press <b>Connect show laptop</b> and type the 6-digit code here.</p>
+    <form id="pair-form" class="row" novalidate>
+      <label for="pair-code" class="sr-only">Pairing code</label>
+      <input id="pair-code" class="code" inputmode="numeric" maxlength="7" placeholder="123 456" autocomplete="off">
+      <button class="primary" type="submit">Pair</button>
+    </form>
+    <div class="error" id="pair-error" role="alert"></div>
+    <button class="link" id="change-project" type="button">Use a different Supabase project</button>
+  </section>
+
+  <!-- 3. Live -->
+  <section id="live" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h2>On the show laptop</h2>
+        <div class="row">
+          <button id="resync" type="button">Re-sync slides</button>
+          <button id="test-laser" type="button">Test laser</button>
+        </div>
+      </div>
+      <dl class="grid">
+        <dt>Presentation app</dt><dd id="v-app">–</dd>
+        <dt>File</dt><dd id="v-file">–</dd>
+        <dt>Slideshow</dt><dd id="v-show">–</dd>
+        <dt>Position</dt><dd id="v-pos" class="mono">–</dd>
+        <dt>Remote control</dt><dd id="v-control">–</dd>
+        <dt>Slide images</dt><dd id="v-export">–</dd>
+      </dl>
+      <div class="warn" id="app-error" hidden></div>
+      <div class="warn" id="ax-warning" hidden>
+        Jumping to a slide, black screen and keystroke mode need Accessibility access on macOS.
+        <button id="ask-ax" type="button">Allow…</button>
+      </div>
+      <div class="hint" id="protected-hint">Files opened from email or the web start in Protected View, which the agent can't see. Click <b>Enable Editing</b> in PowerPoint first.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Speaker decks</h2>
+        <button id="refresh-decks" type="button">Refresh</button>
+      </div>
+      <p class="muted">Files speakers uploaded. Download & open saves them to Documents › Slide Relay and opens them in the presentation app.</p>
+      <ul class="decks" id="decks"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Settings</h2>
+      <div class="form-grid">
+        <label for="app-mode">Presentation app</label>
+        <select id="app-mode">
+          <option value="auto">Automatic</option>
+          <option value="powerpoint">PowerPoint</option>
+          <option value="keynote">Keynote (Mac)</option>
+          <option value="keys">Keystrokes (Google Slides in a browser, PDF…)</option>
+        </select>
+
+        <label for="overlay-display">Laser display</label>
+        <select id="overlay-display"></select>
+
+        <label for="export-width">Slide image width</label>
+        <select id="export-width">
+          <option value="960">960 px</option>
+          <option value="1280">1280 px</option>
+          <option value="1920">1920 px</option>
+        </select>
+      </div>
+
+      <div id="keys-box" class="subcard" hidden>
+        <p class="muted">Keystroke mode sends arrow keys to the front window, so keep the presentation in front. The agent counts clicks, so set where the deck starts.</p>
+        <div class="row">
+          <label for="keys-slide">Now on slide</label>
+          <input id="keys-slide" type="number" min="1" value="1" class="small">
+          <label for="keys-count">Slides in deck</label>
+          <input id="keys-count" type="number" min="0" value="0" class="small">
+          <button id="keys-apply" type="button">Set</button>
+        </div>
+      </div>
+
+      <h3>Show control (Companion, Stream Deck, OSC)</h3>
+      <div class="form-grid">
+        <label for="http-on">HTTP</label>
+        <div class="row"><input id="http-on" type="checkbox"><input id="http-port" type="number" class="small" min="1024" max="65535"></div>
+        <label for="osc-on">OSC (UDP)</label>
+        <div class="row"><input id="osc-on" type="checkbox"><input id="osc-port" type="number" class="small" min="1024" max="65535"></div>
+        <label for="lan-on">Allow from the show network</label>
+        <div class="row"><input id="lan-on" type="checkbox"><span class="muted">HTTP then needs the token below</span></div>
+        <span class="label">Token</span>
+        <code id="token" class="mono"></code>
+      </div>
+      <p class="muted mono small-text" id="sc-example"></p>
+      <div class="row">
+        <button class="primary" id="save-settings" type="button">Save settings</button>
+        <span class="muted" id="settings-saved"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Activity</h2>
+        <button class="link danger" id="unpair" type="button">Unpair this laptop</button>
+      </div>
+      <pre class="log" id="log"></pre>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

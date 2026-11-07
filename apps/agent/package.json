@@ -1,0 +1,77 @@
+{
+  "name": "@rsc/agent",
+  "productName": "Slide Relay Agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Show-laptop agent: drives PowerPoint / Keynote for remote speakers and draws the laser overlay.",
+  "author": "Slide Relay",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && electron .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dist": "node scripts/build.mjs && electron-builder --publish never"
+  },
+  "//": "Everything the app needs at runtime is bundled into dist/ by esbuild, so there are no runtime dependencies to package.",
+  "devDependencies": {
+    "@rsc/protocol": "0.1.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.12",
+    "electron": "38.8.6",
+    "electron-builder": "^26.0.0",
+    "esbuild": "^0.25.0",
+    "jszip": "^3.10.1",
+    "typescript": "^5.6.0",
+    "ws": "^8.18.0"
+  },
+  "build": {
+    "appId": "app.sliderelay.agent",
+    "productName": "Slide Relay Agent",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/**/*.map",
+      "ui/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Slide Relay Agent controls PowerPoint or Keynote so remote speakers can change slides."
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

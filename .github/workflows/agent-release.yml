@@ -1,0 +1,46 @@
+name: Build agent installers
+
+# Run from the Actions tab (or push a tag like agent-v0.1.0). Installers appear
+# as downloadable artifacts on the run. They are unsigned: Windows SmartScreen
+# and macOS Gatekeeper will warn the first time (see README → Agent).
+on:
+  workflow_dispatch:
+  push:
+    tags: ['agent-v*']
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+            artifact: release/*.exe
+          - os: macos-latest
+            target: --mac
+            artifact: release/*.dmg
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      # Optional: prefill the Supabase project on first launch.
+      RSC_SUPABASE_URL: ${{ secrets.RSC_SUPABASE_URL }}
+      RSC_SUPABASE_ANON_KEY: ${{ secrets.RSC_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @rsc/agent
+      - run: npx electron-builder ${{ matrix.target }} --publish never
+        working-directory: apps/agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slide-relay-agent-${{ matrix.os }}
+          path: apps/agent/${{ matrix.artifact }}
+          if-no-files-found: error
