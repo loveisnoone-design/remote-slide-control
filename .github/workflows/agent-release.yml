@@ -46,6 +46,18 @@ jobs:
       - run: npm run build -w @rsc/agent
       - run: npx electron-builder ${{ matrix.target }} --publish never
         working-directory: apps/agent
+      - name: Check the macOS signature
+        if: runner.os == 'macOS'
+        working-directory: apps/agent
+        run: |
+          shopt -s nullglob
+          apps=(release/mac*/*.app)
+          [ ${#apps[@]} -gt 0 ] || { echo "no .app found"; exit 1; }
+          for app in "${apps[@]}"; do
+            echo "== $app"
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dv "$app" 2>&1 | grep -E "Signature|Identifier|flags"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: slide-relay-agent-${{ matrix.os }}

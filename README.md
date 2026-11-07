@@ -53,9 +53,14 @@ Deploy as a static site. Build command `npm run build:web`, output `apps/web/dis
 
 **Installers:** download the latest from the repo's **Releases** page (Windows `.exe`, macOS `.dmg` for Apple silicon and Intel). To build a new version: GitHub → **Actions → Build agent installers → Run workflow**, and enter a release tag such as `agent-v0.1.1` to publish it as a Release (leave it empty to get the files as run artifacts only). To prefill the Supabase project on first launch, add repository secrets `RSC_SUPABASE_URL` and `RSC_SUPABASE_ANON_KEY` before running.
 
-The installers are not code-signed yet:
+The installers are not signed with a paid certificate yet (the Mac app carries an ad-hoc signature, Windows none), so the first launch asks for approval:
 - **Windows:** SmartScreen → *More info* → *Run anyway*.
-- **macOS:** right-click the app → *Open* the first time. macOS then asks to let it control PowerPoint/Keynote (Automation) — allow it. Jumping to a slide, black screen and keystroke mode also need **Accessibility** (System Settings → Privacy & Security → Accessibility → Slide Relay Agent).
+- **macOS:** drag the app to Applications and open it once. When macOS says it could not verify the app, open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. If macOS instead says the app "is damaged", run this once in Terminal, then open it again:
+  ```sh
+  xattr -cr "/Applications/Slide Relay Agent.app"
+  ```
+  macOS then asks to let it control PowerPoint/Keynote (Automation) — allow it. Jumping to a slide, black screen and keystroke mode also need **Accessibility** (System Settings → Privacy & Security → Accessibility → Slide Relay Agent). After installing a new version, toggle that Accessibility switch off and on again.
+- To remove the warnings entirely, sign with an Apple Developer ID and notarize: add `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` and `APPLE_TEAM_ID` as repository secrets, remove `"identity": "-"` and `"hardenedRuntime": false` from `apps/agent/package.json`, and drop `CSC_IDENTITY_AUTO_DISCOVERY` from the workflow.
 
 **From source:** `npm install && npm run dev:agent`.
 
