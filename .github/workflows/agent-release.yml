@@ -1,10 +1,17 @@
 name: Build agent installers
 
 # Run from the Actions tab (or push a tag like agent-v0.1.0). Installers appear
-# as downloadable artifacts on the run. They are unsigned: Windows SmartScreen
-# and macOS Gatekeeper will warn the first time (see README → Agent).
+# as downloadable artifacts on the run, and are also published as a GitHub
+# Release when a release tag is given (or the run was started by a tag push).
+# They are unsigned: Windows SmartScreen and macOS Gatekeeper will warn the
+# first time (see README → Agent).
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Publish as a GitHub Release with this tag (e.g. agent-v0.1.0). Leave empty for artifacts only.'
+        required: false
+        default: ''
   push:
     tags: ['agent-v*']
 
@@ -44,3 +51,28 @@ jobs:
           name: slide-relay-agent-${{ matrix.os }}
           path: apps/agent/${{ matrix.artifact }}
           if-no-files-found: error
+
+  release:
+    needs: build
+    if: ${{ github.ref_type == 'tag' || inputs.release != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.release }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish release
+        run: |
+          ls -la dist
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "Slide Relay Agent ${TAG#agent-}" \
+              --notes "Show-laptop agent for Remote Slide Control. Windows: the .exe installer. Mac: the .dmg (arm64 for Apple silicon, x64 for Intel). Unsigned for now, so Windows SmartScreen and macOS Gatekeeper warn on first launch; see the README."
+          fi

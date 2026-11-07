@@ -51,7 +51,7 @@ Deploy as a static site. Build command `npm run build:web`, output `apps/web/dis
 
 ## 3. Agent for the show laptop
 
-**Installers:** GitHub → **Actions → Build agent installers → Run workflow**. When it finishes, download the Windows `.exe` or macOS `.dmg` (arm64 and Intel) from the run's artifacts. To prefill the Supabase project on first launch, add repository secrets `RSC_SUPABASE_URL` and `RSC_SUPABASE_ANON_KEY` before running.
+**Installers:** download the latest from the repo's **Releases** page (Windows `.exe`, macOS `.dmg` for Apple silicon and Intel). To build a new version: GitHub → **Actions → Build agent installers → Run workflow**, and enter a release tag such as `agent-v0.1.1` to publish it as a Release (leave it empty to get the files as run artifacts only). To prefill the Supabase project on first launch, add repository secrets `RSC_SUPABASE_URL` and `RSC_SUPABASE_ANON_KEY` before running.
 
 The installers are not code-signed yet:
 - **Windows:** SmartScreen → *More info* → *Run anyway*.
